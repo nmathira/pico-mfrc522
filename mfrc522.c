@@ -12,7 +12,8 @@ static int MFRC_Instance_Counter = 0;
 /**
  * Set up the data structures of an MFRC522 ADT object and return a pointer
  */
-MFRC522Ptr_t MFRC522_Init() {
+MFRC522Ptr_t MFRC522_Init(spi_inst_t *spi, uint8_t rst, uint8_t cs, 
+                          uint8_t sck, uint8_t mosi, uint8_t miso) {
 	// allocate instance struct array
 	static struct MFRC522_T mfrc_Instances[MFRC_MAX_INSTANCES];
 	//      static Chip_SSP_DATA_SETUP_T dataSetup_Instances[MFRC_MAX_INSTANCES];
@@ -26,7 +27,13 @@ MFRC522Ptr_t MFRC522_Init() {
 		mfrc_Instances[MFRC_Instance_Counter].Tx_Buf[i] = 0;
 	}
 
-	mfrc_Instances[MFRC_Instance_Counter]._chipSelectPin = cs_pin;
+	mfrc_Instances[MFRC_Instance_Counter].spi = spi;
+	mfrc_Instances[MFRC_Instance_Counter].rst_pin = rst;
+	mfrc_Instances[MFRC_Instance_Counter].sck_pin = sck;
+	mfrc_Instances[MFRC_Instance_Counter].miso_pin = miso;
+	mfrc_Instances[MFRC_Instance_Counter].mosi_pin = mosi;
+	mfrc_Instances[MFRC_Instance_Counter].cs_pin = cs;
+	mfrc_Instances[MFRC_Instance_Counter]._chipSelectPin = cs;
 
 	// update instance counter
 	MFRC_Instance_Counter++;
@@ -212,23 +219,23 @@ PCD_CalculateCRC(MFRC522Ptr_t mfrc,
  */
 void PCD_Init(MFRC522Ptr_t mfrc, spi_inst_t *spi) {
 
-	mfrc->spi = spi0;
+	mfrc->spi = spi;
 	gpio_put(RESET_PIN, 0);
     sleep_ms(1000);
     gpio_put(RESET_PIN, 1);
 	sleep_ms(50);
 
-    gpio_init(cs_pin);
-    gpio_set_dir(cs_pin, GPIO_OUT);
-    gpio_put(cs_pin, 1);
+    gpio_init(mfrc->cs_pin);
+    gpio_set_dir(mfrc->cs_pin, GPIO_OUT);
+    gpio_put(mfrc->cs_pin, 1);
 
     spi_init(spi0, 1000000);
 
     spi_set_format(spi0, 8, 0, 0, SPI_MSB_FIRST);
 
-    gpio_set_function(sck_pin, GPIO_FUNC_SPI);
-    gpio_set_function(mosi_pin, GPIO_FUNC_SPI);
-    gpio_set_function(miso_pin, GPIO_FUNC_SPI);
+    gpio_set_function(mfrc->sck_pin, GPIO_FUNC_SPI);
+    gpio_set_function(mfrc->mosi_pin, GPIO_FUNC_SPI);
+    gpio_set_function(mfrc->miso_pin, GPIO_FUNC_SPI);
 
 	PCD_WriteRegister(mfrc, CommandReg, PCD_SoftReset);
 

@@ -36,10 +36,10 @@
 
 static const uint8_t FIFO_SIZE = 64; // Size of the MFRC522 FIFO
 
-static const uint cs_pin = 17;
-static const uint sck_pin = 18;
-static const uint mosi_pin = 19;
-static const uint miso_pin = 16;
+// static const uint cs_pin = 17;
+// static const uint sck_pin = 18;
+// static const uint mosi_pin = 19;
+// static const uint miso_pin = 16;
 
 static const uint8_t SELF_TEST_BYTES[] = {
 	0x00, 0xEB, 0x66, 0xBA, 0x57, 0xBF, 0x23, 0x95,
@@ -304,8 +304,15 @@ struct MFRC522_T {
 	// Variables used in the SSP(SPI) peripheral of the board
 	spi_inst_t *spi; // Select SSP0 or SSP1
 	uint _chipSelectPin; // = {1, 8}; // As default example use GPIO1[8]= P1_5
+
 	uint8_t Tx_Buf[BUFFER_SIZE];
 	uint8_t Rx_Buf[BUFFER_SIZE];
+
+	uint8_t cs_pin;
+	uint8_t rst_pin;
+	uint8_t sck_pin;
+	uint8_t miso_pin;
+	uint8_t mosi_pin;
 };
 
 // Pointer to a MFRC5222 ADT object
@@ -315,7 +322,7 @@ typedef struct MFRC522_T *MFRC522Ptr_t;
  * Function to setup a MFRC522 ADT object
  * @return an initialized  ADT object
  */
-MFRC522Ptr_t MFRC522_Init();
+MFRC522Ptr_t MFRC522_Init(spi_inst_t *spi, uint8_t rst, uint8_t cs, uint8_t sck, uint8_t mosi, uint8_t miso);
 
 /*******************************************************************************
 * Basic interface functions for communicating with the MFRC522
